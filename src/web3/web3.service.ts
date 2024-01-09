@@ -62,4 +62,9 @@ export class Web3Service {
     // Return the transaction hash
     return tx.hash;
   }
+
+  async getBlockNumber(): Promise<number> {
+    const blockNumber = await this.l2Provider.getBlockNumber();
+    return blockNumber;
+  }
 }
