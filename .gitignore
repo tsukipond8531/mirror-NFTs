@@ -2,6 +2,7 @@
 /dist
 /node_modules
 /cache
+/data
 /packages/*/node_modules
 /packages/*/dist
 /packages/*/coverage

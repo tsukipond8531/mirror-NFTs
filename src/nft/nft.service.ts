@@ -9,15 +9,21 @@ export class NftService {
     constructor(@Inject('NFT_MODEL') private nftModel: Model<Nft>) {}
 
     async create(l1Address: string, l2Address: string): Promise<Nft> {
-        const createdNft = new this.nftModel({l1Address, l2Address});
-        return createdNft.save();
+        const alreadyExists = await this.nftModel.findOne({l1Address: l1Address}).exec();
+
+        if (!alreadyExists) {
+            const createdNft = new this.nftModel({l1Address, l2Address});   
+            return createdNft.save();
+        } else {
+            return alreadyExists;
+        }
     }
 
     async findAll(): Promise<Nft[]> {
         return this.nftModel.find().exec();
     }
 
-    async findOne(l1_address: string): Promise<Nft> {
-        return this.nftModel.findOne({ l1_address: l1_address });
+    async findOne(l1Address: string): Promise<Nft> {
+        return this.nftModel.findOne({l1Address: l1Address}).exec();
     }
 }

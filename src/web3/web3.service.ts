@@ -19,10 +19,11 @@ export class Web3Service {
     this.wallet = new ethers.Wallet(process.env.PRIVATE_KEY as string, this.l2Provider);
   }
 
-  async isOwner(nftAddress: string, ownerAddress: string, token_id: number): Promise<boolean> {
+  async isOwner(nftAddress: string, ownerAddress: string, token_id: number, ): Promise<boolean> {
     // Create a new contract instance
-    const contract = new MockERC721__factory(this.wallet).attach(nftAddress);
-  
+    const factory = new MockERC721__factory();
+    const contract = new ethers.Contract(nftAddress, factory.interface, this.l1Provider);
+    
     // Get the owner of the contract
     const owner = await contract.ownerOf(token_id);
     
@@ -49,9 +50,11 @@ export class Web3Service {
   async mintNFT(nftAddress: string, ownerAddress: string, tokenId: number): Promise<string> {
     // Get the contract address
     const contractAddress = await this.nftService.findOne(nftAddress);
-
     // Create a contract instance
-    const contract = new MockERC721__factory(this.wallet).attach(contractAddress.l2Address);
+
+    const factory = new MockERC721__factory(this.wallet);
+    const contract = new ethers.Contract(contractAddress.l2Address, factory.interface, this.wallet);
+    
     // Mint a new token
     const tx = await contract.mint(ownerAddress, tokenId);
     await tx.wait();
