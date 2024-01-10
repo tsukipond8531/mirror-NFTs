@@ -77,7 +77,8 @@ export class Web3Service {
     await contract.deployed();
     // Set the base URI
     await contract.setBaseURI(baseUri);
-    // Tell the indexer to create new filter
+    // Tell the indexer to create new filters
+    await this.indexerService.createFilter(ChainType.L1, EventType.Transfer, nftAddress);
     await this.indexerService.createFilter(ChainType.L2, EventType.Transfer, contractAddress);
     // Return the contract address
     return contractAddress;

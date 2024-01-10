@@ -21,7 +21,7 @@ export class IndexerService {
         this.l2Provider = new ethers.JsonRpcProvider(process.env.ALCHEMY_ENDPOINT_L2 as string);
     }
 
-    @Cron('*/1 * * * *')
+    @Cron('*/2 * * * *')
     async handleL1Cron() {
         this.logger.debug('Called every minute');
         const blockNumber = await this.l1Provider.getBlockNumber();
