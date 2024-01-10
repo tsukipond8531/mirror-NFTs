@@ -6,11 +6,6 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 contract MockERC721 is ERC721URIStorage {
 
-    event Locked(uint256 tokenId);
-    event Unlocked(uint256 tokenId);
-
-    event SessionEnded(uint256 tokenId);
-
     mapping(uint256 => address) public _owners;
     mapping(uint256 => bool) public _locked;
 
@@ -20,6 +15,10 @@ contract MockERC721 is ERC721URIStorage {
 
     function setBaseURI(string memory newBaseURI) external {
         baseURI = newBaseURI;
+    }
+
+    function getBaseURI() public view returns (string memory) {
+        return _baseURI();
     }
 
     function _baseURI() internal view override returns (string memory) {
@@ -84,10 +83,5 @@ contract MockERC721 is ERC721URIStorage {
 
     function unlockToken(uint256 tokenId) external {
         _locked[tokenId] = false;
-    }
-
-    function EmitSessionEnded(uint256 tokenId) external {
-        require(_locked[tokenId], "Token is not locked");
-        emit SessionEnded(tokenId);
     }
 }
