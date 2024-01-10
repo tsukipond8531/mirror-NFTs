@@ -1,20 +1,16 @@
-// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-contract MockERC721 is ERC721URIStorage {
-
-    event Locked(uint256 tokenId);
-    event Unlocked(uint256 tokenId);
+contract MirrorERC721 is ERC721URIStorage {
+    event SessionEnded(address ownerOf, uint256 tokenId);
 
     mapping(uint256 => address) public _owners;
-    mapping(uint256 => bool) public _locked;
 
     string baseURI;
 
-    constructor() ERC721("MockERC721", "MFT") {}
+    constructor() ERC721("MirrorERC721", "MFT") {}
 
     function setBaseURI(string memory newBaseURI) external {
         baseURI = newBaseURI;
@@ -35,15 +31,16 @@ contract MockERC721 is ERC721URIStorage {
     function mint(address to, uint256 tokenId) external {
         _mint(to, tokenId);
         _owners[tokenId] = to;
-        _locked[tokenId] = false;
     }
 
     function ownerOf(uint256 tokenId) public view override(ERC721, IERC721) returns (address) {
         return _owners[tokenId];
     }
 
-    function isLocked(uint256 tokenId) public view returns (bool) {
-        return _locked[tokenId];
+    function burn(uint256 tokenId) external {
+        require(_owners[tokenId] == msg.sender, "Only owner can burn");
+        _burn(tokenId);
+        delete _owners[tokenId];
     }
 
     function transferFrom(
@@ -51,8 +48,9 @@ contract MockERC721 is ERC721URIStorage {
         address to,
         uint256 tokenId
     ) public override(ERC721, IERC721) {
-        require(!_locked[tokenId], "Token is locked");
+        require(_owners[tokenId] == from, "Only owner can transfer");
         super.transferFrom(from, to, tokenId);
+        _owners[tokenId] = to;
     }
 
     function safeTransferFrom(
@@ -61,21 +59,13 @@ contract MockERC721 is ERC721URIStorage {
         uint256 tokenId,
         bytes memory data
     ) public override(ERC721, IERC721) {
-        require(!_locked[tokenId], "Token is locked");
+        require(_owners[tokenId] == from, "Only owner can transfer");
         super.safeTransferFrom(from, to, tokenId, data);
+        _owners[tokenId] = to;
     }
 
-    function burn(uint256 tokenId) external {
-        _burn(tokenId);
-        delete _owners[tokenId];
-        delete _locked[tokenId];
-    }
-
-    function lockToken(uint256 tokenId) external {
-        _locked[tokenId] = true;
-    }
-
-    function unlockToken(uint256 tokenId) external {
-        _locked[tokenId] = false;
+    function endSession(uint256 tokenId) external {
+        require(_owners[tokenId] == msg.sender, "Only owner can end session");
+        emit SessionEnded(msg.sender, tokenId);
     }
 }
