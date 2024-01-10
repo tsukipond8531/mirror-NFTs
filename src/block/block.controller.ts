@@ -7,7 +7,7 @@ export class BlockController {
   constructor(private readonly blockService: BlockService) {}
 
   @Get()
-  findAll(): Promise<Block> {
+  findAll(): Promise<Block[]> {
     return this.blockService.findAll();
   }
 }

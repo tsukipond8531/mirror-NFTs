@@ -26,12 +26,14 @@ export class IndexerService {
         this.logger.debug('Called every minute');
         const blockNumber = await this.l1Provider.getBlockNumber();
 
-        const lastBlockNumber = await this.blockService.findAll();
+        const lastBlockNumber = await this.blockService.find();
         const l1Filters = await this.filterService.findAllByChain(ChainType.L1);
 
         for (const filter of l1Filters) {
             await this.createTransferFilter(filter.address, lastBlockNumber.blockNumber, blockNumber);
         }
+
+        await this.blockService.update(ChainType.L1, blockNumber);
     }
 
     @Cron('*/1 * * * *')
@@ -39,12 +41,14 @@ export class IndexerService {
         this.logger.debug('Called every minute');
         const blockNumber = await this.l2Provider.getBlockNumber();
         
-        const lastBlockNumber = await this.blockService.findAll();
+        const lastBlockNumber = await this.blockService.find();
         const l2Filters = await this.filterService.findAllByChain(ChainType.L2);
 
         for (const filter of l2Filters) {
             await this.createSessionEndedFilter(filter.address, lastBlockNumber.blockNumber, blockNumber);
         }
+
+        await this.blockService.update(ChainType.L2, blockNumber);
     }
 
     async createTransferFilter(nftAddress: string, fromBlock: number, toBlock: number): Promise<ethers.TopicFilter> {
