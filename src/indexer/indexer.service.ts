@@ -9,13 +9,11 @@ import { BlockService } from 'src/block/block.service';
 export class IndexerService {
     private l1Provider: ethers.JsonRpcProvider;
     private l2Provider: ethers.JsonRpcProvider;
-    private contractAddress: string;
     private readonly logger = new Logger(IndexerService.name);
     
-    constructor(private readonly blockService: BlockService, contractAddress: string) {
+    constructor(private readonly blockService: BlockService) {
         this.l1Provider = new ethers.JsonRpcProvider(process.env.ALCHEMY_ENDPOINT_L1 as string);
         this.l2Provider = new ethers.JsonRpcProvider(process.env.ALCHEMY_ENDPOINT_L2 as string);
-        this.contractAddress = contractAddress;
     }
 
     @Cron('*/1 * * * *')
@@ -26,7 +24,7 @@ export class IndexerService {
         const lastBlockNumber = await this.blockService.findAll();
 
         await this.createTransferFilter(
-            this.contractAddress, 
+            "0x0", 
             lastBlockNumber.blockNumber, 
             blockNumber
         );

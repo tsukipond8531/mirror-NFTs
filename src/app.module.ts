@@ -4,20 +4,25 @@ import { AppService } from './app.service';
 import { Web3Service } from './web3/web3.service';
 import { NftModule } from './nft/nft.module';
 import { NftService } from './nft/nft.service';
-import { nftProviders } from './nft/nft.providers';
 import { DatabaseModule } from './database/database.module';
 import { Web3Module } from './web3/web3.module';
 import { NftController } from './nft/nft.controller';
 import { IndexerModule } from './indexer/indexer.module';
+import { IndexerController } from './indexer/indexer.controller';
+import { BlockModule } from './block/block.module';
+import { IndexerService } from './indexer/indexer.service';
+import { BlockController } from './block/block.controller';
+import { nftProviders } from './nft/nft.providers';
 
 @Module({
-  imports: [Web3Module, NftModule, DatabaseModule, IndexerModule],
-  controllers: [AppController, NftController],
+  imports: [Web3Module, NftModule, DatabaseModule, IndexerModule, BlockModule],
+  controllers: [AppController, NftController, IndexerController, BlockController],
   providers: [
     AppService, 
     Web3Service, 
     NftService,
-    ...nftProviders
+    ...nftProviders,
+    IndexerService,
   ],
 })
 export class AppModule {}
