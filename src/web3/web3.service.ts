@@ -31,18 +31,47 @@ export class Web3Service {
     return owner.toLowerCase() === ownerAddress.toLowerCase();
   }
 
-  async deployNFT(nftAddress: string): Promise<string> {
+  async getNFTMetadata(nftAddress: string, tokenId: number): Promise<string> {
+
+    // Create a new contract instance
+    const factory = new MockERC721__factory();
+    const contract = new ethers.Contract(nftAddress, factory.interface, this.l1Provider);
+    
+    // Get the token URI
+    const tokenURI = await contract.tokenURI(tokenId);
+    
+    // Return the token URI
+    return tokenURI;
+  }
+
+  async getNFTBaseURI(nftAddress: string): Promise<string> {
+      
+    // Create a new contract instance
+    const factory = new MockERC721__factory();
+    const contract = new ethers.Contract(nftAddress, factory.interface, this.l1Provider);
+    
+    // Get the token URI
+    const tokenURI = await contract.getBaseURI();
+    
+    // Return the token URI
+    return tokenURI;
+  }
+
+  async deploy(nftAddress: string, baseUri: string): Promise<string> {
     
     // Create a contract factory
     const mock721Factory = new MockERC721__factory(this.wallet);
 
     // Deploy the contract
-    const contract = await mock721Factory.deploy();
-    const contractAddress = await contract.getAddress();
+    const facotry = await mock721Factory.deploy();
+    const contractAddress = await facotry.getAddress();
     
     // Store into database
-    await this.nftService.create(nftAddress, contractAddress as string); // Call the create method on the instance
+    await this.nftService.create(nftAddress, contractAddress as string);
+    const contract = new ethers.Contract(contractAddress, facotry.interface, this.wallet);
+    await contract.deployed();
 
+    await contract.setBaseURI(baseUri);
     // Return the contract address
     return contractAddress;
   }
@@ -57,6 +86,21 @@ export class Web3Service {
     
     // Mint a new token
     const tx = await contract.mint(ownerAddress, tokenId);
+    await tx.wait();
+
+    // Return the transaction hash
+    return tx.hash;
+  }
+
+  async setTokenURI(nftAddress: string, tokenId: number, tokenURI: string): Promise<string> {
+    // Get the contract address
+    const contractAddress = await this.nftService.findOne(nftAddress);
+    // Create a contract instance
+    const factory = new MockERC721__factory(this.wallet);
+    const contract = new ethers.Contract(contractAddress.l2Address, factory.interface, this.wallet);
+    
+    // Set the token URI
+    const tx = await contract.setTokenURI(tokenId, tokenURI);
     await tx.wait();
 
     // Return the transaction hash
