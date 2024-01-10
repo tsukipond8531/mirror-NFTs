@@ -5,6 +5,7 @@ import { BlockService } from 'src/block/block.service';
 import { ChainType } from 'src/filter/schemas/filter.schema';
 import { FilterService } from 'src/filter/filter.service';
 import { Web3Service } from 'src/web3/web3.service';
+import { NftService } from 'src/nft/nft.service';
 
 @Injectable()
 export class IndexerService {
@@ -13,6 +14,7 @@ export class IndexerService {
     constructor(
         private readonly blockService: BlockService,
         private readonly filterService: FilterService,
+        private readonly nftService: NftService,
         @Inject('L1WebService') private readonly L1WebService: Web3Service,
         @Inject('L2WebService') private readonly L2WebService: Web3Service,
     ) {
@@ -61,19 +63,29 @@ export class IndexerService {
 
         const eventDetection = await contract.queryFilter(transferFilter, fromBlock, toBlock);
         console.log(`Transfer filter created for ${nftAddress} from block ${fromBlock} to block ${toBlock}`);
-        console.log(`Found ${eventDetection}`);
+        console.log(`Found ${eventDetection.values}`);
+
+        // TODO: Transfer L2 NFT to new owner
 
         return transferFilter;
     }
 
-    async createSessionEndedFilter(nftAddress: string, fromBlock: number, toBlock: number): Promise<ethers.TopicFilter> {
+    async createSessionEndedFilter(nftAddress: string, fromBlock: number, toBlock: number) {
         const contract = this.L2WebService.getContractFromAddress(nftAddress);
-        const sessionEndedFilter = await contract.filters.SessionEnded().getTopicFilter();
+        const sessionEndedFilter = contract.filters.SessionEnded;
 
         const eventDetection = await contract.queryFilter(sessionEndedFilter, fromBlock, toBlock);
         console.log(`SessionEnded filter created for ${nftAddress} from block ${fromBlock} to block ${toBlock}`);
-        console.log(`Found ${eventDetection}`);
+        for (const event of eventDetection) {
+            const ethAddress = event.data.slice(0, 66);
+            console.log("ethAddress", ethAddress === '0x' + '0'.repeat(40) ? '0x' : ethAddress.replace(/^0x0*/, '0x'));
+            console.log("tokenId", parseInt(event.data.slice(66), 16));
 
-        return sessionEndedFilter;
+            const tokenId = parseInt(event.data.slice(66), 16);
+            const L1Address = await this.nftService.findOneByL2Address(nftAddress);
+            const L2Metadata = await this.L2WebService.getNFTMetadata(nftAddress, tokenId);
+            // TODO: I only need the tokenURI, not the baseURI.
+            await this.L1WebService.setTokenURI(L1Address.l1Address, tokenId, L2Metadata);
+        }
     }
 }

@@ -26,4 +26,8 @@ export class NftService {
     async findOne(l1Address: string): Promise<Nft> {
         return this.nftModel.findOne({l1Address: l1Address}).exec();
     }
+
+    async findOneByL2Address(l2Address: string): Promise<Nft> {
+        return this.nftModel.findOne({l2Address: l2Address}).exec();
+    }
 }
