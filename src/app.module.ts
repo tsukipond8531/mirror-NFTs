@@ -13,16 +13,34 @@ import { BlockModule } from './block/block.module';
 import { IndexerService } from './indexer/indexer.service';
 import { BlockController } from './block/block.controller';
 import { nftProviders } from './nft/nft.providers';
+import { FilterModule } from './filter/filter.module';
+import { FilterController } from './filter/filter.controller';
+import { FilterService } from './filter/filter.service';
+import { filterProviders } from './filter/filter.providers';
 
 @Module({
-  imports: [Web3Module, NftModule, DatabaseModule, IndexerModule, BlockModule],
-  controllers: [AppController, NftController, IndexerController, BlockController],
+  imports: [
+    Web3Module, 
+    NftModule, 
+    DatabaseModule, 
+    IndexerModule, 
+    BlockModule, 
+    FilterModule
+  ],
+  controllers: [
+    AppController, 
+    NftController, 
+    IndexerController, 
+    BlockController, 
+    FilterController],
   providers: [
     AppService, 
     Web3Service, 
     NftService,
     ...nftProviders,
     IndexerService,
+    FilterService,
+    ...filterProviders
   ],
 })
 export class AppModule {}
