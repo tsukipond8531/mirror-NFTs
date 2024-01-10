@@ -29,6 +29,10 @@ export class FilterService {
         return this.filterModel.find().exec();
     }
 
+    async findAllByChain(chainType: ChainType): Promise<Filter[]> {
+        return this.filterModel.find({chain: chainType}).exec();
+    }
+
     async findOne(eventType: EventType, contractAddress: string): Promise<Filter> {
         return await this.filterModel.findOne({
             eventType: eventType, 

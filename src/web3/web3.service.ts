@@ -3,6 +3,8 @@ import { ethers } from 'ethers'
 import { MockERC721__factory } from 'smart-contracts';
 import { NftService } from '../nft/nft.service';
 import { Injectable } from '@nestjs/common';
+import { ChainType, EventType } from 'src/filter/schemas/filter.schema';
+import { IndexerService } from 'src/indexer/indexer.service';
 
 @Injectable()
 export class Web3Service {
@@ -10,7 +12,10 @@ export class Web3Service {
   private l2Provider: ethers.JsonRpcProvider;
   private wallet: ethers.Wallet; // This will hold the wallet derived from the private key
 
-  constructor(private readonly nftService: NftService) {
+  constructor(
+    private readonly nftService: NftService, 
+    private readonly indexerService: IndexerService
+  ) {
     // Initialize the provider with the Alchemy entrypoint
     this.l1Provider = new ethers.JsonRpcProvider(process.env.ALCHEMY_ENDPOINT_L1 as string);
     this.l2Provider = new ethers.JsonRpcProvider(process.env.ALCHEMY_ENDPOINT_L2 as string);
@@ -70,8 +75,10 @@ export class Web3Service {
     await this.nftService.create(nftAddress, contractAddress as string);
     const contract = new ethers.Contract(contractAddress, facotry.interface, this.wallet);
     await contract.deployed();
-
+    // Set the base URI
     await contract.setBaseURI(baseUri);
+    // Tell the indexer to create new filter
+    await this.indexerService.createFilter(ChainType.L2, EventType.Transfer, contractAddress);
     // Return the contract address
     return contractAddress;
   }
