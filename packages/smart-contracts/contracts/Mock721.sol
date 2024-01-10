@@ -44,33 +44,33 @@ contract MockERC721 is ERC721URIStorage {
         return _locked[tokenId];
     }
 
-    function transferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) public override(ERC721, IERC721) {
-        require(!_locked[tokenId], "Token is locked");
-        super.transferFrom(from, to, tokenId);
-    }
+    // function transferFrom(
+    //     address from,
+    //     address to,
+    //     uint256 tokenId
+    // ) public override(ERC721, IERC721) {
+    //     require(!_locked[tokenId], "Token is locked");
+    //     super.transferFrom(from, to, tokenId);
+    // }
 
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) public override(ERC721, IERC721) {
-        require(!_locked[tokenId], "Token is locked");
-        super.safeTransferFrom(from, to, tokenId);
-    }
+    // function safeTransferFrom(
+    //     address from,
+    //     address to,
+    //     uint256 tokenId
+    // ) public override(ERC721, IERC721) {
+    //     require(!_locked[tokenId], "Token is locked");
+    //     super.safeTransferFrom(from, to, tokenId);
+    // }
 
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 tokenId,
-        bytes memory data
-    ) public override(ERC721, IERC721) {
-        require(!_locked[tokenId], "Token is locked");
-        super.safeTransferFrom(from, to, tokenId, data);
-    }
+    // function safeTransferFrom(
+    //     address from,
+    //     address to,
+    //     uint256 tokenId,
+    //     bytes memory data
+    // ) public override(ERC721, IERC721) {
+    //     require(!_locked[tokenId], "Token is locked");
+    //     super.safeTransferFrom(from, to, tokenId, data);
+    // }
 
     function burn(uint256 tokenId) external {
         _burn(tokenId);

@@ -12,8 +12,9 @@ async function main() {
         wallet
     );
 
-    const tx = await contract.setBaseURI(
-        process.env.BASE_URI as string, 
+    const tx = await contract.mint(
+        process.env.OWNER_ADDRESS as string,
+        parseInt(process.env.TOKEN_ID as string),
     );
 
     console.log("Transaction hash:", tx.hash);

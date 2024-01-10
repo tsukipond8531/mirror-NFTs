@@ -1,6 +1,5 @@
-import {ethers} from 'ethers';
+import { ethers } from 'ethers';   
 import { MockERC721__factory } from '../dist';
-
 
 async function main() {
     const provider = new ethers.JsonRpcProvider(process.env.ALCHEMY_ENDPOINT_L1 as string);
@@ -12,13 +11,13 @@ async function main() {
         wallet
     );
 
-    const tx = await contract.setBaseURI(
-        process.env.BASE_URI as string, 
+    const tx = await contract.setTokenURI(
+        process.env.TOKEN_ID as string,
+        process.env.TOKEN_URI as string, 
     );
 
     console.log("Transaction hash:", tx.hash);
 }
-
 
 main().catch((error) => {
     console.error(error);
