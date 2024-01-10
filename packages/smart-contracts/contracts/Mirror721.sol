@@ -4,7 +4,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 contract MirrorERC721 is ERC721URIStorage {
-    event SessionEnded(address ownerOf, uint256 tokenId);
+    event SessionEnded(address ownerOf, uint256 indexed tokenId);
 
     mapping(uint256 => address) public _owners;
 
