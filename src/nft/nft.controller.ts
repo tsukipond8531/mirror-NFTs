@@ -1,6 +1,5 @@
 import {Controller, Get, Post, Body} from '@nestjs/common';
 import {NftService} from './nft.service';
-import {CreateNftDto} from './dto/create-nft.dto';
 import {NftBody, Nft} from './interfaces/nft.interface';
 
 @Controller('nft')
