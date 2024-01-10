@@ -1,7 +1,6 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import { NftService } from './nft/nft.service';
 import { Web3Controller } from './web3/web3.controller';
-import { MirrorERC721__factory, MockERC721__factory } from 'smart-contracts';
 import { Web3Service } from './web3/web3.service';
 
 @Controller('login')
@@ -14,12 +13,7 @@ export class AppController {
     private readonly nftService: NftService,
   ) {
     this.L1WebService = this.web3Controller.getL1WebService();
-    const MockContractModule = MockERC721__factory;
-    this.L1WebService.setContractTarget(MockContractModule);
-
     this.L2WebService = this.web3Controller.getL2WebService();
-    const mirrorContractModule = MirrorERC721__factory;
-    this.L2WebService.setContractTarget(mirrorContractModule);
   }
 
   @Get(':owner_address/:nft_address/:token_id')

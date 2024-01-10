@@ -7,6 +7,7 @@ import { BlockService } from 'src/block/block.service';
 import { ChainType, EventType } from 'src/filter/schemas/filter.schema';
 import { FilterService } from 'src/filter/filter.service';
 import { ConfigService } from '@nestjs/config';
+import { Web3Service } from 'src/web3/web3.service';
 
 @Injectable()
 export class IndexerService {
@@ -17,20 +18,14 @@ export class IndexerService {
     constructor(
         private readonly blockService: BlockService,
         private readonly filterService: FilterService,
-        private readonly configService: ConfigService,
-    ) {
-        this.l1Provider = new ethers.JsonRpcProvider(
-            this.configService.get<string>('ALCHEMY_ENDPOINT_L1')
-        );
-        this.l2Provider = new ethers.JsonRpcProvider(
-            this.configService.get<string>('ALCHEMY_ENDPOINT_L2')
-        );
-    }
+        private readonly L1WebService: Web3Service,
+        private readonly L2WebService: Web3Service,
+    ) {}
 
     @Cron('*/2 * * * *')
     async handleL1Cron() {
         this.logger.debug('Called every minute');
-        const blockNumber = await this.l1Provider.getBlockNumber();
+        const blockNumber = await this.L1WebService.getBlockNumber();
 
         const lastBlockNumber = await this.blockService.find(ChainType.L1);
         const l1Filters = await this.filterService.findAllByChain(ChainType.L1);
@@ -58,8 +53,7 @@ export class IndexerService {
     }
 
     async createTransferFilter(nftAddress: string, fromBlock: number, toBlock: number): Promise<ethers.TopicFilter> {
-        const factory = new MockERC721__factory();
-        const contract = new ethers.Contract(nftAddress, factory.interface, this.l1Provider);
+        const contract = this.L1WebService.getContractFromAddress(nftAddress);
         const transferFilter = await contract.filters.Transfer().getTopicFilter();
 
         const eventDetection = await contract.queryFilter(transferFilter, fromBlock, toBlock);
@@ -70,8 +64,7 @@ export class IndexerService {
     }
 
     async createSessionEndedFilter(nftAddress: string, fromBlock: number, toBlock: number): Promise<ethers.TopicFilter> {
-        const factory = new MockERC721__factory();
-        const contract = new ethers.Contract(nftAddress, factory.interface, this.l1Provider);
+        const contract = this.L2WebService.getContractFromAddress(nftAddress);
         const sessionEndedFilter = await contract.filters.SessionEnded().getTopicFilter();
 
         const eventDetection = await contract.queryFilter(sessionEndedFilter, fromBlock, toBlock);

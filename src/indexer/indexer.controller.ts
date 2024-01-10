@@ -1,9 +1,9 @@
 import {Controller} from '@nestjs/common';
-import {IndexerService} from './indexer.service';
+import { Web3Controller } from 'src/web3/web3.controller';
 
 @Controller()
 export class IndexerController {
-    constructor(private readonly indexerService: IndexerService) {
+    constructor(private readonly web3Controller: Web3Controller) {
         
     }
 }

@@ -30,6 +30,11 @@ export class Web3Service {
     this.contractTarget = contractTarget;
   }
 
+  getContractFromAddress(contractAddress: string): ethers.Contract {
+    const factory = new this.contractTarget();
+    return new ethers.Contract(contractAddress, factory.interface, this.provider);
+  }
+
   async isOwner(nftAddress: string, ownerAddress: string, token_id: number, ): Promise<boolean> {
     // Create a new contract instance
     const factory = new this.contractTarget();
