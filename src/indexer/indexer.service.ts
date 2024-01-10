@@ -26,7 +26,7 @@ export class IndexerService {
         this.logger.debug('Called every minute');
         const blockNumber = await this.l1Provider.getBlockNumber();
 
-        const lastBlockNumber = await this.blockService.find();
+        const lastBlockNumber = await this.blockService.find(ChainType.L1);
         const l1Filters = await this.filterService.findAllByChain(ChainType.L1);
 
         for (const filter of l1Filters) {
@@ -41,7 +41,7 @@ export class IndexerService {
         this.logger.debug('Called every minute');
         const blockNumber = await this.l2Provider.getBlockNumber();
         
-        const lastBlockNumber = await this.blockService.find();
+        const lastBlockNumber = await this.blockService.find(ChainType.L2);
         const l2Filters = await this.filterService.findAllByChain(ChainType.L2);
 
         for (const filter of l2Filters) {
