@@ -2,8 +2,8 @@ import { ethers } from 'ethers'
 import { NftService } from '../nft/nft.service';
 import { Injectable } from '@nestjs/common';
 import { ChainType, EventType } from 'src/filter/schemas/filter.schema';
-import { IndexerService } from 'src/indexer/indexer.service';
 import { ConfigService } from '@nestjs/config';
+import { FilterService } from 'src/filter/filter.service';
 
 @Injectable()
 export class Web3Service {
@@ -13,17 +13,16 @@ export class Web3Service {
 
   constructor(
     private readonly nftService: NftService, 
-    private readonly indexerService: IndexerService,
+    private readonly filterService: FilterService,
     private readonly configService: ConfigService,
-  ) {
-    // Get the wallet from the private key
-    const privateKey = this.configService.get<string>('PRIVATE_KEY');
-    this.wallet = new ethers.Wallet(privateKey, this.provider);
-  }
+  ) {}
 
   setProvider(endpoint: string): void {
     // Create a new provider
     this.provider = new ethers.JsonRpcProvider(endpoint);
+    // Get the wallet from the private key
+    const privateKey = this.configService.get<string>('PRIVATE_KEY');
+    this.wallet = new ethers.Wallet(privateKey, this.provider);
   }
 
   setContractTarget(contractTarget: any) {
@@ -85,12 +84,13 @@ export class Web3Service {
     // Store into database
     await this.nftService.create(nftAddress, contractAddress as string);
     const contract = new ethers.Contract(contractAddress, facotry.interface, this.wallet);
-    await contract.deployed();
+    await contract.deploymentTransaction().wait();
     // Set the base URI
     await contract.setBaseURI(baseUri);
     // Tell the indexer to create new filters
-    await this.indexerService.createFilter(ChainType.L1, EventType.Transfer, nftAddress);
-    await this.indexerService.createFilter(ChainType.L2, EventType.Transfer, contractAddress);
+    await this.filterService.create(ChainType.L1, EventType.Transfer, nftAddress);
+    await this.filterService.create(ChainType.L2, EventType.SessionEnded, contractAddress);
+    
     // Return the contract address
     return contractAddress;
   }
@@ -106,6 +106,9 @@ export class Web3Service {
     // Mint a new token
     const tx = await contract.mint(ownerAddress, tokenId);
     await tx.wait();
+
+    // Create filter
+    await this.filterService.create(ChainType.L2, EventType.SessionEnded, contractAddress.l2Address);
 
     // Return the transaction hash
     return tx.hash;

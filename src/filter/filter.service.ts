@@ -15,14 +15,16 @@ export class FilterService {
             eventType: eventType, 
             address: contractAddress, 
         }).exec();
-        
-        const createdFilter = new this.filterModel({
-            chain: chainType, 
-            eventType: eventType, 
-            address: contractAddress, 
-        });   
-        return createdFilter.save();
-        
+        if (!filterExists) {
+            const createdFilter = new this.filterModel({
+                chain: chainType, 
+                eventType: eventType, 
+                address: contractAddress, 
+            });   
+            return createdFilter.save();
+        } else {
+            return filterExists;
+        }
     }
 
     async findAll(): Promise<Filter[]> {

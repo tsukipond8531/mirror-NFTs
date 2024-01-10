@@ -9,11 +9,27 @@ import { DatabaseModule } from "src/database/database.module";
 import { FilterModule } from "src/filter/filter.module";
 import { FilterService } from "src/filter/filter.service";
 import { filterProviders } from "src/filter/filter.providers";
+import { NftService } from "src/nft/nft.service";
+import { nftProviders } from "src/nft/nft.providers";
+import { ConfigModule } from "@nestjs/config";
+import { Web3Module } from "src/web3/web3.module";
 
 @Module({
-    imports: [ScheduleModule.forRoot(), BlockModule, DatabaseModule, FilterModule],
+    imports: [
+        ScheduleModule.forRoot(),
+        ConfigModule.forRoot(),
+        BlockModule, 
+        DatabaseModule, 
+        FilterModule,
+        Web3Module,
+    ],
     controllers: [IndexerController],
-    providers: [IndexerService, BlockService, ...blockProviders, FilterService, ...filterProviders],
+    providers: [
+        IndexerService, 
+        BlockService, ...blockProviders, 
+        FilterService, ...filterProviders,
+        NftService, ...nftProviders,
+    ],
 })
 
 export class IndexerModule {}

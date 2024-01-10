@@ -39,12 +39,12 @@ import { Web3Controller } from './web3/web3.controller';
   ],
   providers: [
     AppService, 
-    Web3Service, 
+    Web3Service,
+    Web3Controller,
     NftService, ...nftProviders,
     IndexerService,
     FilterService, ...filterProviders,
     ConfigService,
-    Web3Controller
   ],
 })
 export class AppModule {}
