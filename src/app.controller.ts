@@ -3,6 +3,9 @@ import { NftService } from './nft/nft.service';
 import { Web3Controller } from './web3/web3.controller';
 import { Web3Service } from './web3/web3.service';
 
+/**
+ * Controller for handling login requests.
+ */
 @Controller('login')
 export class AppController {
   private readonly L1WebService: Web3Service;
@@ -16,6 +19,13 @@ export class AppController {
     this.L2WebService = this.web3Controller.getL2WebService();
   }
 
+  /**
+   * Handles the login request.
+   * @param owner_address - The address of the owner.
+   * @param nft_address - The address of the NFT.
+   * @param token_id - The ID of the token.
+   * @returns A Promise that resolves to the login response.
+   */
   @Get(':owner_address/:nft_address/:token_id')
   async login(
     @Param('owner_address') owner_address: string, 

@@ -7,8 +7,14 @@ import { FilterService } from 'src/filter/filter.service';
 import { Web3Service } from 'src/web3/web3.service';
 import { NftService } from 'src/nft/nft.service';
 
+/**
+ * Service responsible for indexing and handling cron jobs for L1 and L2 chains.
+ */
 @Injectable()
 export class IndexerService {
+    /**
+     * Logger instance for the IndexerService class.
+     */
     private readonly logger = new Logger(IndexerService.name);
     
     constructor(
@@ -20,6 +26,10 @@ export class IndexerService {
     ) {
     }
 
+    /**
+     * Cron job handler for L1 chain.
+     * This method is called every 2 minutes.
+     */
     @Cron('*/2 * * * *')
     async handleL1Cron() {
         this.logger.debug('Called every 2 minutes');
@@ -38,6 +48,10 @@ export class IndexerService {
         }
     }
 
+    /**
+     * Cron job handler for L2 chain.
+     * This method is called every minute.
+     */
     @Cron('*/1 * * * *')
     async handleL2Cron() {
         this.logger.debug('Called every minute');
@@ -57,6 +71,13 @@ export class IndexerService {
         
     }
 
+    /**
+     * Creates a transfer filter for the given NFT address and block range.
+     * @param nftAddress - The address of the NFT contract.
+     * @param fromBlock - The starting block number.
+     * @param toBlock - The ending block number.
+     * @returns The created transfer filter.
+     */
     async createTransferFilter(nftAddress: string, fromBlock: number, toBlock: number): Promise<ethers.TopicFilter> {
         const contract = this.L1WebService.getContractFromAddress(nftAddress);
         const transferFilter = await contract.filters.Transfer().getTopicFilter();
@@ -70,6 +91,12 @@ export class IndexerService {
         return transferFilter;
     }
 
+    /**
+     * Creates a session ended filter for the given NFT address and block range.
+     * @param nftAddress - The address of the NFT contract.
+     * @param fromBlock - The starting block number.
+     * @param toBlock - The ending block number.
+     */
     async createSessionEndedFilter(nftAddress: string, fromBlock: number, toBlock: number) {
         const contract = this.L2WebService.getContractFromAddress(nftAddress);
         const sessionEndedFilter = contract.filters.SessionEnded;

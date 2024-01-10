@@ -5,6 +5,9 @@ import { ChainType, EventType } from 'src/filter/schemas/filter.schema';
 import { ConfigService } from '@nestjs/config';
 import { FilterService } from 'src/filter/filter.service';
 
+/**
+ * Service for interacting with the Web3 provider and smart contracts.
+ */
 @Injectable()
 export class Web3Service {
   private provider: ethers.JsonRpcProvider;
@@ -17,6 +20,10 @@ export class Web3Service {
     private readonly configService: ConfigService,
   ) {}
 
+  /**
+   * Set the Web3 provider endpoint.
+   * @param endpoint The endpoint URL of the Web3 provider.
+   */
   setProvider(endpoint: string): void {
     // Create a new provider
     this.provider = new ethers.JsonRpcProvider(endpoint);
@@ -25,15 +32,31 @@ export class Web3Service {
     this.wallet = new ethers.Wallet(privateKey, this.provider);
   }
 
+  /**
+   * Set the target contract for interacting with smart contracts.
+   * @param contractTarget The target contract.
+   */
   setContractTarget(contractTarget: any) {
     this.contractTarget = contractTarget;
   }
 
+  /**
+   * Get the contract instance from the contract address.
+   * @param contractAddress The address of the contract.
+   * @returns The contract instance.
+   */
   getContractFromAddress(contractAddress: string): ethers.Contract {
     const factory = new this.contractTarget();
     return new ethers.Contract(contractAddress, factory.interface, this.provider);
   }
 
+  /**
+   * Check if the given address is the owner of the NFT.
+   * @param nftAddress The address of the NFT contract.
+   * @param ownerAddress The address to check ownership against.
+   * @param token_id The ID of the token.
+   * @returns A promise that resolves to a boolean indicating ownership.
+   */
   async isOwner(nftAddress: string, ownerAddress: string, token_id: number, ): Promise<boolean> {
     // Create a new contract instance
     const factory = new this.contractTarget();
@@ -46,6 +69,12 @@ export class Web3Service {
     return owner.toLowerCase() === ownerAddress.toLowerCase();
   }
 
+  /**
+   * Get the metadata of the NFT.
+   * @param nftAddress The address of the NFT contract.
+   * @param tokenId The ID of the token.
+   * @returns A promise that resolves to the metadata of the NFT.
+   */
   async getNFTMetadata(nftAddress: string, tokenId: number): Promise<string> {
 
     // Create a new contract instance
@@ -59,6 +88,11 @@ export class Web3Service {
     return tokenURI;
   }
 
+  /**
+   * Get the base URI of the NFT contract.
+   * @param nftAddress The address of the NFT contract.
+   * @returns A promise that resolves to the base URI of the NFT contract.
+   */
   async getNFTBaseURI(nftAddress: string): Promise<string> {
       
     // Create a new contract instance
@@ -72,6 +106,12 @@ export class Web3Service {
     return tokenURI;
   }
 
+  /**
+   * Deploy a new NFT contract.
+   * @param nftAddress The address of the NFT contract.
+   * @param baseUri The base URI for the NFT contract.
+   * @returns A promise that resolves to the address of the deployed contract.
+   */
   async deploy(nftAddress: string, baseUri: string): Promise<string> {
     
     // Create a contract factory
@@ -95,6 +135,13 @@ export class Web3Service {
     return contractAddress;
   }
 
+  /**
+   * Mint a new NFT token.
+   * @param nftAddress The address of the NFT contract.
+   * @param ownerAddress The address of the token owner.
+   * @param tokenId The ID of the token.
+   * @returns A promise that resolves to the transaction hash of the minting operation.
+   */
   async mintNFT(nftAddress: string, ownerAddress: string, tokenId: number): Promise<string> {
     // Get the contract address
     const contractAddress = await this.nftService.findOne(nftAddress);
@@ -114,6 +161,13 @@ export class Web3Service {
     return tx.hash;
   }
 
+  /**
+   * Set the token URI of an NFT token.
+   * @param nftAddress The address of the NFT contract.
+   * @param tokenId The ID of the token.
+   * @param tokenURI The URI of the token.
+   * @returns A promise that resolves to the transaction hash of the setting operation.
+   */
   async setTokenURI(nftAddress: string, tokenId: number, tokenURI: string): Promise<string> {
     // Get the contract address
     const contractAddress = await this.nftService.findOne(nftAddress);
@@ -129,6 +183,10 @@ export class Web3Service {
     return tx.hash;
   }
 
+  /**
+   * Get the current block number.
+   * @returns A promise that resolves to the current block number.
+   */
   async getBlockNumber(): Promise<number> {
     const blockNumber = await this.provider.getBlockNumber();
     return blockNumber;
