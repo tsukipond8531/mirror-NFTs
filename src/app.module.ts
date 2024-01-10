@@ -17,6 +17,8 @@ import { FilterModule } from './filter/filter.module';
 import { FilterController } from './filter/filter.controller';
 import { FilterService } from './filter/filter.service';
 import { filterProviders } from './filter/filter.providers';
+import { ConfigService } from '@nestjs/config';
+import { Web3Controller } from './web3/web3.controller';
 
 @Module({
   imports: [
@@ -32,15 +34,17 @@ import { filterProviders } from './filter/filter.providers';
     NftController, 
     IndexerController, 
     BlockController, 
-    FilterController],
+    FilterController,
+    Web3Controller
+  ],
   providers: [
     AppService, 
     Web3Service, 
-    NftService,
-    ...nftProviders,
+    NftService, ...nftProviders,
     IndexerService,
-    FilterService,
-    ...filterProviders
+    FilterService, ...filterProviders,
+    ConfigService,
+    Web3Controller
   ],
 })
 export class AppModule {}

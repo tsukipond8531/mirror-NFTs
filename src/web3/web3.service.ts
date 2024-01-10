@@ -1,33 +1,39 @@
-// import {ethers} from 'ethers'
 import { ethers } from 'ethers'
-import { MockERC721__factory } from 'smart-contracts';
 import { NftService } from '../nft/nft.service';
 import { Injectable } from '@nestjs/common';
 import { ChainType, EventType } from 'src/filter/schemas/filter.schema';
 import { IndexerService } from 'src/indexer/indexer.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class Web3Service {
-  private l1Provider: ethers.JsonRpcProvider;
-  private l2Provider: ethers.JsonRpcProvider;
-  private wallet: ethers.Wallet; // This will hold the wallet derived from the private key
+  private provider: ethers.JsonRpcProvider;
+  private wallet: ethers.Wallet;
+  private contractTarget: any;
 
   constructor(
     private readonly nftService: NftService, 
-    private readonly indexerService: IndexerService
+    private readonly indexerService: IndexerService,
+    private readonly configService: ConfigService,
   ) {
-    // Initialize the provider with the Alchemy entrypoint
-    this.l1Provider = new ethers.JsonRpcProvider(process.env.ALCHEMY_ENDPOINT_L1 as string);
-    this.l2Provider = new ethers.JsonRpcProvider(process.env.ALCHEMY_ENDPOINT_L2 as string);
-
     // Get the wallet from the private key
-    this.wallet = new ethers.Wallet(process.env.PRIVATE_KEY as string, this.l2Provider);
+    const privateKey = this.configService.get<string>('PRIVATE_KEY');
+    this.wallet = new ethers.Wallet(privateKey, this.provider);
+  }
+
+  setProvider(endpoint: string): void {
+    // Create a new provider
+    this.provider = new ethers.JsonRpcProvider(endpoint);
+  }
+
+  setContractTarget(contractTarget: any) {
+    this.contractTarget = contractTarget;
   }
 
   async isOwner(nftAddress: string, ownerAddress: string, token_id: number, ): Promise<boolean> {
     // Create a new contract instance
-    const factory = new MockERC721__factory();
-    const contract = new ethers.Contract(nftAddress, factory.interface, this.l1Provider);
+    const factory = new this.contractTarget();
+    const contract = new ethers.Contract(nftAddress, factory.interface, this.provider);
     
     // Get the owner of the contract
     const owner = await contract.ownerOf(token_id);
@@ -39,8 +45,8 @@ export class Web3Service {
   async getNFTMetadata(nftAddress: string, tokenId: number): Promise<string> {
 
     // Create a new contract instance
-    const factory = new MockERC721__factory();
-    const contract = new ethers.Contract(nftAddress, factory.interface, this.l1Provider);
+    const factory = new this.contractTarget();
+    const contract = new ethers.Contract(nftAddress, factory.interface, this.provider);
     
     // Get the token URI
     const tokenURI = await contract.tokenURI(tokenId);
@@ -52,8 +58,8 @@ export class Web3Service {
   async getNFTBaseURI(nftAddress: string): Promise<string> {
       
     // Create a new contract instance
-    const factory = new MockERC721__factory();
-    const contract = new ethers.Contract(nftAddress, factory.interface, this.l1Provider);
+    const factory = new this.contractTarget();
+    const contract = new ethers.Contract(nftAddress, factory.interface, this.provider);
     
     // Get the token URI
     const tokenURI = await contract.getBaseURI();
@@ -65,10 +71,10 @@ export class Web3Service {
   async deploy(nftAddress: string, baseUri: string): Promise<string> {
     
     // Create a contract factory
-    const mock721Factory = new MockERC721__factory(this.wallet);
+    const factory = new this.contractTarget(this.wallet);
 
     // Deploy the contract
-    const facotry = await mock721Factory.deploy();
+    const facotry = await factory.deploy();
     const contractAddress = await facotry.getAddress();
     
     // Store into database
@@ -89,7 +95,7 @@ export class Web3Service {
     const contractAddress = await this.nftService.findOne(nftAddress);
     // Create a contract instance
 
-    const factory = new MockERC721__factory(this.wallet);
+    const factory = new this.contractTarget(this.wallet);
     const contract = new ethers.Contract(contractAddress.l2Address, factory.interface, this.wallet);
     
     // Mint a new token
@@ -104,7 +110,7 @@ export class Web3Service {
     // Get the contract address
     const contractAddress = await this.nftService.findOne(nftAddress);
     // Create a contract instance
-    const factory = new MockERC721__factory(this.wallet);
+    const factory = new this.contractTarget(this.wallet);
     const contract = new ethers.Contract(contractAddress.l2Address, factory.interface, this.wallet);
     
     // Set the token URI
@@ -116,7 +122,7 @@ export class Web3Service {
   }
 
   async getBlockNumber(): Promise<number> {
-    const blockNumber = await this.l2Provider.getBlockNumber();
+    const blockNumber = await this.provider.getBlockNumber();
     return blockNumber;
   }
 }

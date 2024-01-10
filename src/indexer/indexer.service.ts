@@ -6,6 +6,7 @@ import { databaseProviders } from 'src/database/database.providers';
 import { BlockService } from 'src/block/block.service';
 import { ChainType, EventType } from 'src/filter/schemas/filter.schema';
 import { FilterService } from 'src/filter/filter.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class IndexerService {
@@ -16,9 +17,14 @@ export class IndexerService {
     constructor(
         private readonly blockService: BlockService,
         private readonly filterService: FilterService,
+        private readonly configService: ConfigService,
     ) {
-        this.l1Provider = new ethers.JsonRpcProvider(process.env.ALCHEMY_ENDPOINT_L1 as string);
-        this.l2Provider = new ethers.JsonRpcProvider(process.env.ALCHEMY_ENDPOINT_L2 as string);
+        this.l1Provider = new ethers.JsonRpcProvider(
+            this.configService.get<string>('ALCHEMY_ENDPOINT_L1')
+        );
+        this.l2Provider = new ethers.JsonRpcProvider(
+            this.configService.get<string>('ALCHEMY_ENDPOINT_L2')
+        );
     }
 
     @Cron('*/2 * * * *')

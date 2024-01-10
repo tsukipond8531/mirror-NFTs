@@ -1,15 +1,25 @@
 import { Controller, Get, Param } from '@nestjs/common';
-import { Web3Service } from './web3/web3.service';
 import { NftService } from './nft/nft.service';
+import { Web3Controller } from './web3/web3.controller';
+import { MirrorERC721__factory, MockERC721__factory } from 'smart-contracts';
+import { Web3Service } from './web3/web3.service';
 
 @Controller('login')
 export class AppController {
+  private readonly L1WebService: Web3Service;
+  private readonly L2WebService: Web3Service;
+
   constructor(
-    private readonly web3Service: Web3Service,
+    private readonly web3Controller: Web3Controller,
     private readonly nftService: NftService,
   ) {
-    // TODO: Create two instances of the provider, one for L1 and one for L2
-    // With this I should be able to handle both networks without writing more functions
+    this.L1WebService = this.web3Controller.getL1WebService();
+    const MockContractModule = MockERC721__factory;
+    this.L1WebService.setContractTarget(MockContractModule);
+
+    this.L2WebService = this.web3Controller.getL2WebService();
+    const mirrorContractModule = MirrorERC721__factory;
+    this.L2WebService.setContractTarget(mirrorContractModule);
   }
 
   @Get(':owner_address/:nft_address/:token_id')
@@ -19,11 +29,11 @@ export class AppController {
     @Param('token_id') token_id: number,
   ): Promise<any> {
 
-    const isOwner = this.web3Service.isOwner(nft_address, owner_address, token_id);
+    const isOwner = this.L1WebService.isOwner(nft_address, owner_address, token_id);
 
     if (isOwner) {
       // TODO: Read nft metadata
-      const metadata = await this.web3Service.getNFTMetadata(nft_address, token_id);
+      const metadata = await this.L1WebService.getNFTMetadata(nft_address, token_id);
       // console.log(metadata);
       const [baseUri, tokenUri] = metadata.split("/");
 
@@ -32,16 +42,16 @@ export class AppController {
       if (isDeployed) {
         // Mint new token
         console.log("Minting new token");
-        await this.web3Service.mintNFT(nft_address, owner_address, token_id);
-        await this.web3Service.setTokenURI(nft_address, token_id, tokenUri);
+        await this.L2WebService.mintNFT(nft_address, owner_address, token_id);
+        await this.L2WebService.setTokenURI(nft_address, token_id, tokenUri);
       } else {
         // Deploy new contract
         console.log("Deploying new contract");
-        const newContractAddress = await this.web3Service.deploy(nft_address, baseUri);
+        const newContractAddress = await this.L2WebService.deploy(nft_address, baseUri);
         // Mint new token
         console.log("Minting new token");
-        await this.web3Service.mintNFT(newContractAddress, owner_address, token_id);
-        await this.web3Service.setTokenURI(newContractAddress, token_id, tokenUri);
+        await this.L2WebService.mintNFT(newContractAddress, owner_address, token_id);
+        await this.L2WebService.setTokenURI(newContractAddress, token_id, tokenUri);
       }
       return {
         "addr": owner_address,
