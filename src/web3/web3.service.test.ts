@@ -41,16 +41,6 @@ describe('Web3Service', () => {
     });
   });
 
-  describe('setContractTarget', () => {
-    it('should set the contract target', () => {
-      const contractTarget = jest.fn();
-
-      web3Service.setContractTarget(contractTarget);
-
-      expect(web3Service['contractTarget']).toBe(contractTarget);
-    });
-  });
-
   describe('getContractFromAddress', () => {
     it('should return a contract instance', () => {
       const contractAddress = '0x1234567890abcdef';
@@ -58,7 +48,7 @@ describe('Web3Service', () => {
 
       jest.spyOn(web3Service, 'getContractFromAddress').mockReturnValue(mockContract);
 
-      const result = web3Service.getContractFromAddress(contractAddress);
+      const result = web3Service.getContractFromAddress(contractAddress, []);
 
       expect(result).toBe(mockContract);
     });

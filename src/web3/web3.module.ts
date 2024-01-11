@@ -8,7 +8,6 @@ import { DatabaseModule } from "src/database/database.module";
 import { Web3Controller } from "./web3.controller";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { NftService } from "src/nft/nft.service";
-import { MirrorERC721__factory, MockERC721__factory } from "smart-contracts";
 
 @Module({
     imports: [
@@ -27,7 +26,6 @@ import { MirrorERC721__factory, MockERC721__factory } from "smart-contracts";
             ) => { 
             const web3Service = new Web3Service(nftservice, configService);
             web3Service.setProvider(configService.get<string>('ALCHEMY_ENDPOINT_L1'));
-            web3Service.setContractTarget(MockERC721__factory);
             return web3Service;
             },
             inject: [NftService, ConfigService]
@@ -39,7 +37,6 @@ import { MirrorERC721__factory, MockERC721__factory } from "smart-contracts";
             ) => { 
             const web3Service = new Web3Service(nftservice, configService);
             web3Service.setProvider(configService.get<string>('ALCHEMY_ENDPOINT_L2'));
-            web3Service.setContractTarget(MirrorERC721__factory);
             return web3Service;
             },
             inject: [NftService, ConfigService]
