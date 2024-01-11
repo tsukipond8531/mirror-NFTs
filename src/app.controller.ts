@@ -40,9 +40,9 @@ export class AppController {
 
     if (isOwner) {
       // TODO: Read nft metadata
-      const metadata = await this.L1WebService.getNFTMetadata(nft_address, token_id);
+      const [baseUri, tokenUri] = await this.L1WebService.getNFTMetadata(nft_address, token_id);
       // console.log(metadata);
-      const [baseUri, tokenUri] = metadata.split("/");
+      
 
       const isDeployed = await this.nftService.findOne(nft_address);
       var l2NftAddress: string;
@@ -53,8 +53,8 @@ export class AppController {
         if (!isMinted) {
           // Mint new token
           console.log("Minting new token");
-          l2NftAddress = await this.L2WebService.mintNFT(nft_address, owner_address, token_id);
-          await this.L2WebService.setTokenURI(nft_address, token_id, tokenUri);
+          await this.L2WebService.mintNFT(isDeployed.l2Address, owner_address, token_id);
+          await this.L2WebService.setTokenURI(isDeployed.l2Address, token_id, tokenUri);
         }
       } else {
         // Deploy new contract
@@ -67,10 +67,9 @@ export class AppController {
 
         // Create filter for transfer event
         await this.filterService.create(ChainType.L1, EventType.Transfer, nft_address);
+        // Create filter for session ended event
+        await this.filterService.create(ChainType.L2, EventType.SessionEnded, l2NftAddress);
       }
-
-      // Create filter for session ended event
-      await this.filterService.create(ChainType.L2, EventType.SessionEnded, l2NftAddress);
       
       return {
         "addr": owner_address,

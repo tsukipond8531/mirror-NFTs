@@ -71,8 +71,4 @@ export class FilterService {
             address: contractAddress, 
         }).exec();
     }
-
-    async deleteFilter(filter: Filter) {
-        await this.filterModel.deleteOne({filter}).exec();
-    }
 }
