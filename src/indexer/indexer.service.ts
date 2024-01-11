@@ -54,7 +54,9 @@ export class IndexerService {
      * @returns The created transfer filter.
      */
     async createTransferFilter(nftAddress: string, fromBlock: number, toBlock: number): Promise<ethers.TopicFilter> {
-        const contract = this.L1WebService.getContractFromAddress(nftAddress);
+        const contracts = await this.nftService.findOneByL1Address(nftAddress);
+        const contract = this.L1WebService.getContractFromAddress(nftAddress, contracts.abi);
+        
         const transferFilter = await contract.filters.Transfer().getTopicFilter();
 
         const eventDetection = await contract.queryFilter(transferFilter, fromBlock, toBlock);
