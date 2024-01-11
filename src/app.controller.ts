@@ -1,9 +1,10 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { NftService } from './nft/nft.service';
 import { Web3Controller } from './web3/web3.controller';
 import { Web3Service } from './web3/web3.service';
 import { FilterService } from './filter/filter.service';
 import { ChainType, EventType } from './filter/schemas/filter.schema';
+import { ScannerService } from './scanner/scanner.service';
 
 /**
  * Controller for handling login requests.
@@ -17,6 +18,7 @@ export class AppController {
     private readonly web3Controller: Web3Controller,
     private readonly nftService: NftService,
     private readonly filterService: FilterService,
+    private readonly scannerService: ScannerService,
   ) {
     this.L1WebService = this.web3Controller.getL1WebService();
     this.L2WebService = this.web3Controller.getL2WebService();
@@ -35,42 +37,22 @@ export class AppController {
     @Param('nft_address') nft_address: string,
     @Param('token_id') token_id: number,
   ): Promise<any> {
-
-    const isOwner = this.L1WebService.isOwner(nft_address, owner_address, token_id);
-
-    if (isOwner) {
-      // TODO: Read nft metadata
-      const [baseUri, tokenUri] = await this.L1WebService.getNFTMetadata(nft_address, token_id);
-      // console.log(metadata);
+    const isDeployed = await this.nftService.findOneByL1Address(nft_address);
+    const L2NftContract = isDeployed.l2Address;
+    if (isDeployed) {
+      const isOwner = this.L1WebService.isOwner(nft_address, isDeployed.abi, owner_address, token_id);
       
-
-      const isDeployed = await this.nftService.findOne(nft_address);
-      var l2NftAddress: string;
-
-      if (isDeployed) {
+      if (isOwner) {
+        const [_, tokenUri] = await this.L1WebService.getNFTMetadata(nft_address, isDeployed.abi, token_id);        
         // Check if token is minted
-        const isMinted = await this.L2WebService.isMinted(nft_address, token_id);
+        const isMinted = await this.L2WebService.isMinted(L2NftContract, isDeployed.abi, token_id);
         if (!isMinted) {
           // Mint new token
           console.log("Minting new token");
-          await this.L2WebService.mintNFT(isDeployed.l2Address, owner_address, token_id);
-          await this.L2WebService.setTokenURI(isDeployed.l2Address, token_id, tokenUri);
+          await this.L2WebService.mintNFT(L2NftContract, isDeployed.abi, owner_address, token_id);
+          await this.L2WebService.setTokenURI(L2NftContract, isDeployed.abi, token_id, tokenUri);
         }
-      } else {
-        // Deploy new contract
-        console.log("Deploying new contract");
-        l2NftAddress = await this.L2WebService.deploy(nft_address, baseUri);
-        // Mint new token
-        console.log("Minting new token");
-        await this.L2WebService.mintNFT(l2NftAddress, owner_address, token_id);
-        await this.L2WebService.setTokenURI(l2NftAddress, token_id, tokenUri);
-
-        // Create filter for transfer event
-        await this.filterService.create(ChainType.L1, EventType.Transfer, nft_address);
-        // Create filter for session ended event
-        await this.filterService.create(ChainType.L2, EventType.SessionEnded, l2NftAddress);
-      }
-      
+      }  
       return {
         statusCode: 200,
         body: JSON.stringify({
@@ -78,7 +60,7 @@ export class AppController {
           result: {
             ownerAddress: owner_address,
             L1NftAddress: nft_address,
-            L2NftAddress: l2NftAddress,
+            L2NftAddress: L2NftContract,
             tokenId: token_id,
           }
         }),
@@ -92,13 +74,13 @@ export class AppController {
     @Param('token_id') tokenId: number
   ) {
     // Get the L1 address of the NFT
-    const L1Address = await this.nftService.findOneByL2Address(L2NftAddress);
-    if (L1Address) {
+    const constracts = await this.nftService.findOneByL2Address(L2NftAddress);
+    if (constracts) {
       // Fetch the metadata from L2
-      const [_, tokenUri] = await this.L2WebService.getNFTMetadata(L2NftAddress, tokenId);
+      const [_, tokenUri] = await this.L2WebService.getNFTMetadata(L2NftAddress, constracts.abi, tokenId);
       console.log(tokenUri);
       // Set the token URI
-      await this.L1WebService.setTokenURI(L1Address.l1Address, tokenId, tokenUri);
+      await this.L1WebService.setTokenURI(constracts.l1Address, constracts.abi, tokenId, tokenUri);
 
       return {
         statusCode: 200,
@@ -113,4 +95,32 @@ export class AppController {
       }
     }
   }
+
+  @Post('deploy/:nftAddress')
+  async getByteCode(
+    @Param('nftAddress') nftAddress: string,
+    @Body('constructorArgs') constructorArgs: any[],
+  ) {
+    const bytecode = await this.L1WebService.getByteCode(nftAddress);
+    const abi = await this.scannerService.getAbi(nftAddress);
+    const l2Address = await this.L2WebService.deployFromByteCode(
+      abi,
+      bytecode, 
+      constructorArgs,
+    );
+    // Save the L1 and L2 address
+    await this.nftService.create(nftAddress, l2Address, abi);
+    // Create filter for transfer event
+    await this.filterService.create(ChainType.L1, EventType.Transfer, nftAddress);
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        message: "Successfully deployed NFT",
+        result: {
+          L1Address: nftAddress,
+          L2Address: l2Address,
+          }
+        }),
+      };
+    };
 }

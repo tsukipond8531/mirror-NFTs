@@ -19,6 +19,8 @@ import { FilterService } from './filter/filter.service';
 import { filterProviders } from './filter/filter.providers';
 import { ConfigService } from '@nestjs/config';
 import { Web3Controller } from './web3/web3.controller';
+import { ScannerService } from './scanner/scanner.service';
+import { ScannerModule } from './scanner/scanner.module';
 
 @Module({
   imports: [
@@ -27,7 +29,8 @@ import { Web3Controller } from './web3/web3.controller';
     DatabaseModule, 
     IndexerModule, 
     BlockModule, 
-    FilterModule
+    FilterModule,
+    ScannerModule
   ],
   controllers: [
     AppController, 
@@ -45,6 +48,7 @@ import { Web3Controller } from './web3/web3.controller';
     IndexerService,
     FilterService, ...filterProviders,
     ConfigService,
+    ScannerService
   ],
 })
 export class AppModule {}
