@@ -2,6 +2,8 @@ import { Controller, Get, Param } from '@nestjs/common';
 import { NftService } from './nft/nft.service';
 import { Web3Controller } from './web3/web3.controller';
 import { Web3Service } from './web3/web3.service';
+import { FilterService } from './filter/filter.service';
+import { ChainType, EventType } from './filter/schemas/filter.schema';
 
 /**
  * Controller for handling login requests.
@@ -14,6 +16,7 @@ export class AppController {
   constructor(
     private readonly web3Controller: Web3Controller,
     private readonly nftService: NftService,
+    private readonly filterService: FilterService,
   ) {
     this.L1WebService = this.web3Controller.getL1WebService();
     this.L2WebService = this.web3Controller.getL2WebService();
@@ -42,24 +45,37 @@ export class AppController {
       const [baseUri, tokenUri] = metadata.split("/");
 
       const isDeployed = await this.nftService.findOne(nft_address);
-      
+      var l2NftAddress: string;
+
       if (isDeployed) {
-        // Mint new token
-        console.log("Minting new token");
-        await this.L2WebService.mintNFT(nft_address, owner_address, token_id);
-        await this.L2WebService.setTokenURI(nft_address, token_id, tokenUri);
+        // Check if token is minted
+        const isMinted = await this.L2WebService.isMinted(nft_address, token_id);
+        if (!isMinted) {
+          // Mint new token
+          console.log("Minting new token");
+          l2NftAddress = await this.L2WebService.mintNFT(nft_address, owner_address, token_id);
+          await this.L2WebService.setTokenURI(nft_address, token_id, tokenUri);
+        }
       } else {
         // Deploy new contract
         console.log("Deploying new contract");
-        const newContractAddress = await this.L2WebService.deploy(nft_address, baseUri);
+        l2NftAddress = await this.L2WebService.deploy(nft_address, baseUri);
         // Mint new token
         console.log("Minting new token");
-        await this.L2WebService.mintNFT(newContractAddress, owner_address, token_id);
-        await this.L2WebService.setTokenURI(newContractAddress, token_id, tokenUri);
+        await this.L2WebService.mintNFT(l2NftAddress, owner_address, token_id);
+        await this.L2WebService.setTokenURI(l2NftAddress, token_id, tokenUri);
+
+        // Create filter for transfer event
+        await this.filterService.create(ChainType.L1, EventType.Transfer, nft_address);
       }
+
+      // Create filter for session ended event
+      await this.filterService.create(ChainType.L2, EventType.SessionEnded, l2NftAddress);
+      
       return {
         "addr": owner_address,
-        "owns": nft_address,
+        "l1Owns": nft_address,
+        "l2Owns": l2NftAddress,
         "token": token_id,
       };
     } else {

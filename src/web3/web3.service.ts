@@ -1,9 +1,9 @@
 import { ethers } from 'ethers'
 import { NftService } from '../nft/nft.service';
 import { Injectable } from '@nestjs/common';
-import { ChainType, EventType } from 'src/filter/schemas/filter.schema';
 import { ConfigService } from '@nestjs/config';
-import { FilterService } from 'src/filter/filter.service';
+
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 /**
  * Service for interacting with the Web3 provider and smart contracts.
@@ -16,7 +16,6 @@ export class Web3Service {
 
   constructor(
     private readonly nftService: NftService, 
-    private readonly filterService: FilterService,
     private readonly configService: ConfigService,
   ) {}
 
@@ -127,12 +126,21 @@ export class Web3Service {
     await contract.deploymentTransaction().wait();
     // Set the base URI
     await contract.setBaseURI(baseUri);
-    // Tell the indexer to create new filters
-    await this.filterService.create(ChainType.L1, EventType.Transfer, nftAddress);
-    await this.filterService.create(ChainType.L2, EventType.SessionEnded, contractAddress);
     
     // Return the contract address
     return contractAddress;
+  }
+
+  async isMinted(nftAddress: string, tokenId: number): Promise<boolean> {
+    // Get the contract address
+    const contractAddresses = await this.nftService.findOne(nftAddress);
+    // Create a contract instance
+    const factory = new this.contractTarget(this.wallet);
+    const contract = new ethers.Contract(contractAddresses.l2Address, factory.interface, this.provider);
+    
+    // Check if the token is minted
+    const owner = await contract.ownerOf(tokenId);
+    return owner.toLowerCase() !== ZERO_ADDRESS.toLowerCase();
   }
 
   /**
@@ -144,21 +152,18 @@ export class Web3Service {
    */
   async mintNFT(nftAddress: string, ownerAddress: string, tokenId: number): Promise<string> {
     // Get the contract address
-    const contractAddress = await this.nftService.findOne(nftAddress);
+    const contractAddresses = await this.nftService.findOne(nftAddress);
     // Create a contract instance
 
     const factory = new this.contractTarget(this.wallet);
-    const contract = new ethers.Contract(contractAddress.l2Address, factory.interface, this.wallet);
+    const contract = new ethers.Contract(contractAddresses.l2Address, factory.interface, this.wallet);
     
     // Mint a new token
     const tx = await contract.mint(ownerAddress, tokenId);
     await tx.wait();
 
-    // Create filter
-    await this.filterService.create(ChainType.L2, EventType.SessionEnded, contractAddress.l2Address);
-
     // Return the transaction hash
-    return tx.hash;
+    return contractAddresses.l2Address;
   }
 
   /**
@@ -170,10 +175,10 @@ export class Web3Service {
    */
   async setTokenURI(nftAddress: string, tokenId: number, tokenURI: string): Promise<string> {
     // Get the contract address
-    const contractAddress = await this.nftService.findOne(nftAddress);
+    const contractAddresses = await this.nftService.findOne(nftAddress);
     // Create a contract instance
     const factory = new this.contractTarget(this.wallet);
-    const contract = new ethers.Contract(contractAddress.l2Address, factory.interface, this.wallet);
+    const contract = new ethers.Contract(contractAddresses.l2Address, factory.interface, this.wallet);
     
     // Set the token URI
     const tx = await contract.setTokenURI(tokenId, tokenURI);

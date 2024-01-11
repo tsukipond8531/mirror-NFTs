@@ -104,12 +104,16 @@ export class IndexerService {
         const eventDetection = await contract.queryFilter(sessionEndedFilter, fromBlock, toBlock);
         console.log(`SessionEnded filter created for ${nftAddress} from block ${fromBlock} to block ${toBlock}`);
         for (const event of eventDetection) {
+            // Parse event data
+            // Event data contains the address of the owner and the token ID
             const ethAddress = event.data.slice(0, 66);
             console.log("ethAddress", ethAddress === '0x' + '0'.repeat(40) ? '0x' : ethAddress.replace(/^0x0*/, '0x'));
             console.log("tokenId", parseInt(event.data.slice(66), 16));
-
             const tokenId = parseInt(event.data.slice(66), 16);
+
+            // Get the L1 address of the NFT
             const L1Address = await this.nftService.findOneByL2Address(nftAddress);
+            // Fetch the metadata from L2
             const L2Metadata = await this.L2WebService.getNFTMetadata(nftAddress, tokenId);
             // TODO: I only need the tokenURI, not the baseURI.
             await this.L1WebService.setTokenURI(L1Address.l1Address, tokenId, L2Metadata);
