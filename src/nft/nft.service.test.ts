@@ -33,7 +33,7 @@ describe('NftService', () => {
       const findOneSpy = jest.spyOn(nftModel, 'findOne').mockResolvedValue(null);
       const saveSpy = jest.spyOn(nftModel.prototype, 'save').mockResolvedValue({ l1Address, l2Address } as Nft);
 
-      const result = await nftService.create(l1Address, l2Address);
+      const result = await nftService.create(l1Address, l2Address, []);
 
       expect(findOneSpy).toHaveBeenCalledWith({ l1Address });
       expect(saveSpy).toHaveBeenCalled();
@@ -45,7 +45,7 @@ describe('NftService', () => {
       const l2Address = '0x456';
       const findOneSpy = jest.spyOn(nftModel, 'findOne').mockResolvedValue({ l1Address, l2Address } as Nft);
 
-      const result = await nftService.create(l1Address, l2Address);
+      const result = await nftService.create(l1Address, l2Address, []);
 
       expect(findOneSpy).toHaveBeenCalledWith({ l1Address });
       expect(result).toEqual({ l1Address, l2Address });
@@ -68,7 +68,7 @@ describe('NftService', () => {
       const l1Address = '0x123';
       const findOneSpy = jest.spyOn(nftModel, 'findOne').mockResolvedValue({ l1Address, l2Address: '0x456' } as Nft);
 
-      const result = await nftService.findOne(l1Address);
+      const result = await nftService.findOneByL1Address(l1Address);
 
       expect(findOneSpy).toHaveBeenCalledWith({ l1Address });
       expect(result).toEqual({ l1Address, l2Address: '0x456' });

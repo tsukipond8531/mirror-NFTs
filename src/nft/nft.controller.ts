@@ -13,6 +13,6 @@ export class NftController{
 
     @Get(':l1_address')
     findOne(@Body() body: NftBody): Promise<Nft> {
-        return this.nftService.findOne(body.l1_address);
+        return this.nftService.findOneByL1Address(body.l1_address);
     }
 }

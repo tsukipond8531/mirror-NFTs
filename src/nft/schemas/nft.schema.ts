@@ -10,6 +10,9 @@ export class Nft{
 
     @Prop()
     l2Address: string;
+
+    @Prop()
+    abi: any[];
 }
 
 export const NftSchema = SchemaFactory.createForClass(Nft);
