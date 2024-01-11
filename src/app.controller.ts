@@ -8,7 +8,7 @@ import { ChainType, EventType } from './filter/schemas/filter.schema';
 /**
  * Controller for handling login requests.
  */
-@Controller('login')
+@Controller()
 export class AppController {
   private readonly L1WebService: Web3Service;
   private readonly L2WebService: Web3Service;
@@ -29,7 +29,7 @@ export class AppController {
    * @param token_id - The ID of the token.
    * @returns A Promise that resolves to the login response.
    */
-  @Get(':owner_address/:nft_address/:token_id')
+  @Get('login/:owner_address/:nft_address/:token_id')
   async login(
     @Param('owner_address') owner_address: string, 
     @Param('nft_address') nft_address: string,
@@ -72,13 +72,45 @@ export class AppController {
       }
       
       return {
-        "addr": owner_address,
-        "l1Owns": nft_address,
-        "l2Owns": l2NftAddress,
-        "token": token_id,
+        statusCode: 200,
+        body: JSON.stringify({
+          message: "Successfully logged in",
+          result: {
+            ownerAddress: owner_address,
+            L1NftAddress: nft_address,
+            L2NftAddress: l2NftAddress,
+            tokenId: token_id,
+          }
+        }),
       };
-    } else {
-      return {"error": "Not the owner of the NFT"};
+    }
+  }
+
+  @Get('update/:L2NftAddress/:token_id')
+  async updateL1Contract(
+    @Param('L2NftAddress') L2NftAddress: string, 
+    @Param('token_id') tokenId: number
+  ) {
+    // Get the L1 address of the NFT
+    const L1Address = await this.nftService.findOneByL2Address(L2NftAddress);
+    if (L1Address) {
+      // Fetch the metadata from L2
+      const [_, tokenUri] = await this.L2WebService.getNFTMetadata(L2NftAddress, tokenId);
+      console.log(tokenUri);
+      // Set the token URI
+      await this.L1WebService.setTokenURI(L1Address.l1Address, tokenId, tokenUri);
+
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          message: "Successfully updated L1 contract",
+          result: {
+            L2NftAddress: L2NftAddress,
+            tokenId: tokenId,
+            tokenUri: tokenUri,
+          }
+        }),
+      }
     }
   }
 }
