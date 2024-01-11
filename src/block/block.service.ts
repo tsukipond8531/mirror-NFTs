@@ -15,17 +15,23 @@ export class BlockService {
      * @param blockModel The block model.
      */
     constructor(@Inject('BLOCK_MODEL') private blockModel: Model<Block>) {
-        const createdBlockL1 = new this.blockModel({
-            chainType: ChainType.L1,
-            blockNumber: 0
-        });
-        createdBlockL1.save();
+        const isCreatedL1 = this.find(ChainType.L1);
+        if (!isCreatedL1) {
+            const createdBlockL1 = new this.blockModel({
+                chainType: ChainType.L1,
+                blockNumber: 0
+            });
+            createdBlockL1.save();
+        }
 
-        const createdBlockL2 = new this.blockModel({
-            chainType: ChainType.L2,
-            blockNumber: 0
-        });
-        createdBlockL2.save();
+        const isCreatedL2 = this.find(ChainType.L2);
+        if (!isCreatedL2) {
+            const createdBlockL2 = new this.blockModel({
+                chainType: ChainType.L2,
+                blockNumber: 0
+            });
+            createdBlockL2.save();
+        }
     }
 
     /**

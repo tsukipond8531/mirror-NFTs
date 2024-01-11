@@ -34,9 +34,7 @@ export class IndexerService {
     async handleL1Cron() {
         this.logger.debug('Called every 2 minutes');
         const blockNumber = await this.L1WebService.getBlockNumber();
-        console.log(`L1 Block number: ${blockNumber}`);
         const lastBlockNumber = await this.blockService.find(ChainType.L1);
-        console.log("L1 DB Block:", lastBlockNumber);
         if(lastBlockNumber) {
             const l1Filters = await this.filterService.findAllByChain(ChainType.L1);
 
@@ -56,9 +54,7 @@ export class IndexerService {
     async handleL2Cron() {
         this.logger.debug('Called every minute');
         const blockNumber = await this.L2WebService.getBlockNumber();
-        console.log(`L2 Block number: ${blockNumber}`);
         const lastBlockNumber = await this.blockService.find(ChainType.L2);
-        console.log("L2 DB Block:", lastBlockNumber);
         if (lastBlockNumber) {
             const l2Filters = await this.filterService.findAllByChain(ChainType.L2);
 
@@ -84,7 +80,6 @@ export class IndexerService {
 
         const eventDetection = await contract.queryFilter(transferFilter, fromBlock, toBlock);
         console.log(`Transfer filter created for ${nftAddress} from block ${fromBlock} to block ${toBlock}`);
-        console.log(`Found ${eventDetection.values}`);
 
         // TODO: Transfer L2 NFT to new owner
 
@@ -114,9 +109,9 @@ export class IndexerService {
             // Get the L1 address of the NFT
             const L1Address = await this.nftService.findOneByL2Address(nftAddress);
             // Fetch the metadata from L2
-            const L2Metadata = await this.L2WebService.getNFTMetadata(nftAddress, tokenId);
+            const [_, tokenUri] = await this.L2WebService.getNFTMetadata(nftAddress, tokenId);
             // TODO: I only need the tokenURI, not the baseURI.
-            await this.L1WebService.setTokenURI(L1Address.l1Address, tokenId, L2Metadata);
+            await this.L1WebService.setTokenURI(L1Address.l1Address, tokenId, tokenUri);
         }
     }
 }
