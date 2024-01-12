@@ -40,6 +40,10 @@ export class Web3Service {
     return new ethers.Contract(contractAddress, abi, this.provider);
   }
 
+  supportsFunction(abi: any[], functionName: string): boolean {
+    return abi.some(item => item.name === functionName);
+  }
+
   /**
    * Check if the given address is the owner of the NFT.
    * @param nftAddress The address of the NFT contract.
@@ -91,10 +95,10 @@ export class Web3Service {
     const contract = new ethers.Contract(nftAddress, abi, this.provider);
     
     // Get the token URI
-    const tokenURI = await contract.getBaseURI();
+    const baseURI = await contract.getBaseURI();
     
     // Return the token URI
-    return tokenURI;
+    return baseURI;
   }
 
   async isMinted(nftAddress: string, abi: any[], tokenId: number): Promise<boolean> {
@@ -113,7 +117,7 @@ export class Web3Service {
    * @param tokenId The ID of the token.
    * @returns A promise that resolves to the transaction hash of the minting operation.
    */
-  async mintNFT(nftAddress: string, abi: any[], ownerAddress: string, tokenId: number) {
+  async mintNFT(nftAddress: string, abi: any[], ownerAddress: string, tokenId: number): Promise<string> {
     // Get the contract address
     // Create a contract instance
 
@@ -121,7 +125,7 @@ export class Web3Service {
     
     // Mint a new token
     const tx = await contract.mint(ownerAddress, tokenId);
-    await tx.wait();    
+    return tx.hash;
   }
 
   /**
@@ -136,7 +140,16 @@ export class Web3Service {
     
     // Set the token URI
     const tx = await contract.setTokenURI(tokenId, tokenURI);
-    await tx.wait();
+
+    // Return the transaction hash
+    return tx.hash;
+  }
+
+  async setBaseURI(nftAddress: string, abi: any[], baseURI: string): Promise<string> {
+    const contract = new ethers.Contract(nftAddress, abi, this.wallet);
+    
+    // Set the token URI
+    const tx = await contract.setBaseURI(baseURI);
 
     // Return the transaction hash
     return tx.hash;
