@@ -2,11 +2,11 @@ import { ethers } from "hardhat";
 
 async function main() {
 
-  const lock = await ethers.deployContract("MockERC721");
+  const contract = await ethers.deployContract("MockERC721");
 
-  await lock.waitForDeployment();
+  await contract.waitForDeployment();
 
-  console.log("Lock deployed to:", lock.getAddress());
+  console.log("Contract deployed to:", contract.target);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

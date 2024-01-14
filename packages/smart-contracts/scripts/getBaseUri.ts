@@ -1,5 +1,5 @@
 import {ethers} from 'ethers';
-import {MockERC721__factory} from '../dist';
+import {MirrorERC721__factory, MockERC721__factory} from '../dist';
 
 async function main() {
     const provider = new ethers.JsonRpcProvider(process.env.ALCHEMY_ENDPOINT_L1 as string);
@@ -12,7 +12,7 @@ async function main() {
         wallet
     );
 
-    const tokenURI = await contract.getBaseURI(process.env.TOKEN_ID as string);
+    const tokenURI = await contract.getBaseURI();
 
     console.log("Base URI:", tokenURI);
     

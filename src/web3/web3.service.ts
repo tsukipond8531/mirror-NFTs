@@ -2,7 +2,6 @@ import { Fragment, ethers, AbiCoder } from 'ethers'
 import { NftService } from '../nft/nft.service';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import axios from 'axios';
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
@@ -169,19 +168,39 @@ export class Web3Service {
     return bytecode;
   }
 
-  async deployFromByteCode(abi: any[] ,bytecode: string, constructorArgs: any[]): Promise<string> {
-    const constructorFragment = Fragment.from({
-      type: "constructor",
-      inputs: abi.find((fragment) => fragment.type === "constructor").inputs,
-    });
+  async deployFromByteCode(abi: any[], bytecode: string, constructorArgs: any[]): Promise<string> {
+    const constructorFragment = abi.find((fragment) => fragment.type === "constructor");
 
-    if (constructorFragment.inputs.length !== constructorArgs.length) {
-      throw new Error("Invalid constructor arguments");
+    if (constructorFragment) {
+      if (constructorArgs.length !== constructorFragment.inputs.length) {
+        throw new Error("Invalid constructor arguments.");
+      }
     }
 
     const factory = new ethers.ContractFactory(abi, bytecode, this.wallet);
-    const contract = await factory.deploy(...constructorArgs, {gasLimit: 100000000});
-    
+    const contract = await factory.deploy(...constructorArgs, { gasLimit: 100000000 });
+
     return await contract.getAddress();
+  }
+
+  async callContractFunction(abi: any[], contractAddress: string, functionName: string, args: any[]): Promise<any> {
+    const contract = new ethers.Contract(contractAddress, abi, this.wallet);
+
+    // Find the function in the ABI
+    const functionAbi = abi.find((item) => item.name === functionName);
+
+    // Check if the function exists in the ABI
+    if (!functionAbi) {
+      throw new Error(`Function ${functionName} not found in the ABI.`);
+    }
+
+    // Check if the number of arguments matches the expected number of inputs in the ABI
+    if (args.length !== functionAbi.inputs.length) {
+      throw new Error(`Invalid number of arguments for function ${functionName}.`);
+    }
+
+    const result = await contract[functionName](...args);
+
+    return result;
   }
 }

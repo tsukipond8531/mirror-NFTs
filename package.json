@@ -27,6 +27,7 @@
     "@nestjs/mongoose": "^10.0.2",
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/schedule": "^4.0.0",
+    "@nestjs/swagger": "^7.1.17",
     "@typechain/ethers-v5": "^11.1.2",
     "ethers": "^6.9.2",
     "mongoose": "^8.0.3",
@@ -34,6 +35,7 @@
     "rxjs": "^7.8.1",
     "smart-contracts": "file:./packages/smart-contracts",
     "solc": "0.8.20",
+    "swagger-ui-express": "^5.0.0",
     "typechain": "^8.3.2"
   },
   "devDependencies": {

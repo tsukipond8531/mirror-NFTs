@@ -30,21 +30,21 @@ export class IndexerService {
      * Cron job handler for L1 chain.
      * This method is called every 2 minutes.
      */
-    @Cron('*/2 * * * *')
-    async handleL1Cron() {
-        this.logger.debug('Called every 2 minutes');
-        const blockNumber = await this.L1WebService.getBlockNumber();
-        const lastBlockNumber = await this.blockService.find(ChainType.L1);
-        if(lastBlockNumber) {
-            const l1Filters = await this.filterService.findAllByChain(ChainType.L1);
+    // @Cron('*/2 * * * *')
+    // async handleL1Cron() {
+    //     this.logger.debug('Called every 2 minutes');
+    //     const blockNumber = await this.L1WebService.getBlockNumber();
+    //     const lastBlockNumber = await this.blockService.find(ChainType.L1);
+    //     if(lastBlockNumber) {
+    //         const l1Filters = await this.filterService.findAllByChain(ChainType.L1);
 
-            for (const filter of l1Filters) {
-                await this.createTransferFilter(filter.address, lastBlockNumber.blockNumber, blockNumber);
-            }
+    //         for (const filter of l1Filters) {
+    //             await this.createTransferFilter(filter.address, lastBlockNumber.blockNumber, blockNumber);
+    //         }
 
-            await this.blockService.update(ChainType.L1, blockNumber);
-        }
-    }
+    //         await this.blockService.update(ChainType.L1, blockNumber);
+    //     }
+    // }
 
     /**
      * Creates a transfer filter for the given NFT address and block range.

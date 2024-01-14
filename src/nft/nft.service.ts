@@ -29,6 +29,14 @@ export class NftService {
         }
     }
 
+    async updateAbi(l1Address: string, abi: any[], byteCode: string): Promise<Nft> {
+        return this.nftModel.findOneAndUpdate({l1Address: l1Address}, {abi: abi, byteCode: byteCode}).exec();
+    }
+
+    async updateL2Address(l1Address: string, l2Address: string): Promise<Nft> {
+        return this.nftModel.findOneAndUpdate({l1Address: l1Address}, {l2Address: l2Address}).exec();
+    }
+
     /**
      * Retrieves all NFTs.
      * @returns An array of NFTs.
