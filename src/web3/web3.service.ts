@@ -179,7 +179,10 @@ export class Web3Service {
 
     const factory = new ethers.ContractFactory(abi, bytecode, this.wallet);
     try {
-      const contract = await factory.deploy(...constructorArgs, { gasLimit: 2400000 });
+      const contractDeployTransaction = await factory.getDeployTransaction(...constructorArgs);
+      const gasEstimate = await this.provider.estimateGas(contractDeployTransaction);
+
+      const contract = await factory.deploy(...constructorArgs, { gasLimit: gasEstimate });
       return contract.getAddress();
     }
     catch (error) {
