@@ -14,13 +14,23 @@ function successfullResult(result: any): any {
             result: result,
         })
     }
-  }
+}
 
 @Injectable()
+/**
+ * Service class for handling application logic related to NFT mirroring.
+ */
 export class AppService {
     private readonly L1WebService: Web3Service;
     private readonly L2WebService: Web3Service;
     
+    /**
+     * Creates an instance of the AppService class.
+     * @param web3Controller - The Web3Controller instance.
+     * @param nftService - The NftService instance.
+     * @param filterService - The FilterService instance.
+     * @param scannerService - The ScannerService instance.
+     */
     constructor(
         private readonly web3Controller: Web3Controller,
         private readonly nftService: NftService,
@@ -31,6 +41,14 @@ export class AppService {
         this.L2WebService = this.web3Controller.getL2WebService();
     }
 
+    /**
+     * Mirrors a token from Layer 1 to Layer 2 blockchain.
+     * 
+     * @param ownerAddress - The address of the token owner.
+     * @param nftAddress - The address of the NFT contract on Layer 1.
+     * @param tokenId - The ID of the token to be mirrored.
+     * @returns A Promise that resolves to the result of the mirroring operation.
+     */
     async mirrorToken(ownerAddress: string, nftAddress: string, tokenId: number): Promise<any> {
         const isDeployed = await this.nftService.findOneByL1Address(nftAddress);
         const L2NftContract = isDeployed.l2Address;
@@ -57,6 +75,12 @@ export class AppService {
         }
     }
 
+    /**
+     * Updates the L1 contract with the token URI from the L2 contract.
+     * @param L2NftAddress The address of the L2 contract.
+     * @param tokenId The ID of the token.
+     * @returns A successful result object containing the L2NftAddress, tokenId, and tokenUri.
+     */
     async updateL1Contract(L2NftAddress: string, tokenId: number) {
         const contracts = await this.nftService.findOneByL2Address(L2NftAddress);
         if (contracts) {
@@ -77,8 +101,14 @@ export class AppService {
         }
     }
 
+    /**
+     * Mirrors a contract from Layer 1 (L1) to Layer 2 (L2).
+     * 
+     * @param nftAddress The address of the NFT contract on Layer 1.
+     * @param constructorArgs The arguments to be passed to the contract constructor.
+     * @returns A successful result object containing the Layer 1 address and Layer 2 address of the mirrored contract.
+     */
     async mirrorContract(nftAddress: string, constructorArgs: any[]) {
-        // TODO: Fetch contract bytecode from database
         const nftContract = await this.nftService.findOneByL1Address(nftAddress);
         var abi;
         var byteCode;

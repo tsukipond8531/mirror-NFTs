@@ -16,6 +16,8 @@ export class NftService {
      * If an NFT with the same L1 address already exists, it returns the existing NFT.
      * @param l1Address The L1 address of the NFT.
      * @param l2Address The L2 address of the NFT.
+     * @param abi The ABI (Application Binary Interface) of the NFT.
+     * @param byteCode The bytecode of the NFT.
      * @returns The created or existing NFT.
      */
     async create(l1Address: string, l2Address: string, abi: any[], byteCode: string): Promise<Nft> {
@@ -29,10 +31,23 @@ export class NftService {
         }
     }
 
+    /**
+     * Updates the ABI (Application Binary Interface) and bytecode of an NFT with the given L1 address.
+     * @param l1Address The L1 address of the NFT.
+     * @param abi The new ABI of the NFT.
+     * @param byteCode The new bytecode of the NFT.
+     * @returns The updated NFT.
+     */
     async updateAbi(l1Address: string, abi: any[], byteCode: string): Promise<Nft> {
         return this.nftModel.findOneAndUpdate({l1Address: l1Address}, {abi: abi, byteCode: byteCode}).exec();
     }
 
+    /**
+     * Updates the L2 address of an NFT with the given L1 address.
+     * @param l1Address The L1 address of the NFT.
+     * @param l2Address The new L2 address of the NFT.
+     * @returns The updated NFT.
+     */
     async updateL2Address(l1Address: string, l2Address: string): Promise<Nft> {
         return this.nftModel.findOneAndUpdate({l1Address: l1Address}, {l2Address: l2Address}).exec();
     }

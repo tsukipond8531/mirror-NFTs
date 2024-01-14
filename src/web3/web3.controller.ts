@@ -29,6 +29,9 @@ function successfullResult(result: any): any {
     }
 }
 
+/**
+ * Controller for handling web3 related operations.
+ */
 @Controller('web3')
 @ApiTags('web3')
 export class Web3Controller {
@@ -40,14 +43,30 @@ export class Web3Controller {
     ) {
     }
 
+    /**
+     * Get the L1 web service.
+     * @returns The L1 web service.
+     */
     getL1WebService(): Web3Service {
         return this.L1WebService;
     }
 
+    /**
+     * Get the L2 web service.
+     * @returns The L2 web service.
+     */
     getL2WebService(): Web3Service {
         return this.L2WebService;
     }
 
+    /**
+     * Call a contract function.
+     * @param chainType - The chain type.
+     * @param nftAddress - The NFT address.
+     * @param functionName - The function name.
+     * @param args - The function arguments.
+     * @returns The result of the contract function call.
+     */
     @Post('callContract/:chainType/:nftAddress/:functionName')
     @ApiBody({type: Object})
     async callContract(
@@ -73,6 +92,12 @@ export class Web3Controller {
         }
     }
 
+    /**
+     * Get the provider data based on the chain type and NFT address.
+     * @param chainType - The chain type.
+     * @param nftAddress - The NFT address.
+     * @returns The provider data, which includes the ABI and web service.
+     */
     async _getProviderData(chainType: ChainType, nftAddress: string): Promise<[any[], Web3Service]> {
         var contracts: Nft;
         var webService: Web3Service;

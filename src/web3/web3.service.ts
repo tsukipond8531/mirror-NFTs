@@ -8,6 +8,9 @@ const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 /**
  * Service for interacting with the Web3 provider and smart contracts.
  */
+/**
+ * Service for interacting with Web3 and Ethereum smart contracts.
+ */
 @Injectable()
 export class Web3Service {
   private provider: ethers.JsonRpcProvider;
@@ -39,6 +42,12 @@ export class Web3Service {
     return new ethers.Contract(contractAddress, abi, this.provider);
   }
 
+  /**
+   * Check if a given function is supported by the contract ABI.
+   * @param abi The contract ABI.
+   * @param functionName The name of the function to check.
+   * @returns A boolean indicating whether the function is supported.
+   */
   supportsFunction(abi: any[], functionName: string): boolean {
     return abi.some(item => item.name === functionName);
   }
@@ -46,6 +55,7 @@ export class Web3Service {
   /**
    * Check if the given address is the owner of the NFT.
    * @param nftAddress The address of the NFT contract.
+   * @param abi The contract ABI.
    * @param ownerAddress The address to check ownership against.
    * @param token_id The ID of the token.
    * @returns A promise that resolves to a boolean indicating ownership.
@@ -64,6 +74,7 @@ export class Web3Service {
   /**
    * Get the metadata of the NFT.
    * @param nftAddress The address of the NFT contract.
+   * @param abi The contract ABI.
    * @param tokenId The ID of the token.
    * @returns A promise that resolves to the metadata of the NFT.
    */
@@ -86,6 +97,7 @@ export class Web3Service {
   /**
    * Get the base URI of the NFT contract.
    * @param nftAddress The address of the NFT contract.
+   * @param abi The contract ABI.
    * @returns A promise that resolves to the base URI of the NFT contract.
    */
   async getNFTBaseURI(nftAddress: string, abi: any[]): Promise<string> {
@@ -100,6 +112,13 @@ export class Web3Service {
     return baseURI;
   }
 
+  /**
+   * Check if a token with the given ID is minted.
+   * @param nftAddress The address of the NFT contract.
+   * @param abi The contract ABI.
+   * @param tokenId The ID of the token.
+   * @returns A promise that resolves to a boolean indicating whether the token is minted.
+   */
   async isMinted(nftAddress: string, abi: any[], tokenId: number): Promise<boolean> {
     // Create a contract instance
     const contract = new ethers.Contract(nftAddress, abi, this.provider);
@@ -112,6 +131,7 @@ export class Web3Service {
   /**
    * Mint a new NFT token.
    * @param nftAddress The address of the NFT contract.
+   * @param abi The contract ABI.
    * @param ownerAddress The address of the token owner.
    * @param tokenId The ID of the token.
    * @returns A promise that resolves to the transaction hash of the minting operation.
@@ -130,6 +150,7 @@ export class Web3Service {
   /**
    * Set the token URI of an NFT token.
    * @param nftAddress The address of the NFT contract.
+   * @param abi The contract ABI.
    * @param tokenId The ID of the token.
    * @param tokenURI The URI of the token.
    * @returns A promise that resolves to the transaction hash of the setting operation.
@@ -144,10 +165,17 @@ export class Web3Service {
     return tx.hash;
   }
 
+  /**
+   * Set the base URI of the NFT contract.
+   * @param nftAddress The address of the NFT contract.
+   * @param abi The contract ABI.
+   * @param baseURI The base URI of the NFT contract.
+   * @returns A promise that resolves to the transaction hash of the setting operation.
+   */
   async setBaseURI(nftAddress: string, abi: any[], baseURI: string): Promise<string> {
     const contract = new ethers.Contract(nftAddress, abi, this.wallet);
     
-    // Set the token URI
+    // Set the base URI
     const tx = await contract.setBaseURI(baseURI);
 
     // Return the transaction hash
@@ -163,11 +191,23 @@ export class Web3Service {
     return blockNumber;
   }
 
+  /**
+   * Get the bytecode of a contract at the given address.
+   * @param address The address of the contract.
+   * @returns A promise that resolves to the bytecode of the contract.
+   */
   async getByteCode(address: string): Promise<string> {
     const bytecode = await this.provider.getCode(address);
     return bytecode;
   }
 
+  /**
+   * Deploy a contract from bytecode.
+   * @param abi The contract ABI.
+   * @param bytecode The bytecode of the contract.
+   * @param constructorArgs The arguments for the constructor of the contract.
+   * @returns A promise that resolves to the address of the deployed contract.
+   */
   async deployFromByteCode(abi: any[], bytecode: string, constructorArgs: any[]): Promise<string> {
     const constructorFragment = abi.find((fragment) => fragment.type === "constructor");
 
@@ -190,6 +230,14 @@ export class Web3Service {
     }
   }
 
+  /**
+   * Call a function of a contract.
+   * @param abi The contract ABI.
+   * @param contractAddress The address of the contract.
+   * @param functionName The name of the function to call.
+   * @param args The arguments for the function.
+   * @returns A promise that resolves to the result of the function call.
+   */
   async callContractFunction(abi: any[], contractAddress: string, functionName: string, args: any[]): Promise<any> {
     const contract = new ethers.Contract(contractAddress, abi, this.wallet);
 

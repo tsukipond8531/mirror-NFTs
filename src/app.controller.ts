@@ -40,6 +40,12 @@ export class AppController {
     return this.appService.mirrorToken(owner_address, nft_address, token_id);
   }
 
+  /**
+   * Handles the update request for L1 contract.
+   * @param L2NftAddress - The address of the L2 NFT.
+   * @param tokenId - The ID of the token.
+   * @returns A Promise that resolves to the update response.
+   */
   @Get('update/:L2NftAddress/:token_id')
   async updateL1Contract(
     @Param('L2NftAddress') L2NftAddress: string, 
@@ -48,6 +54,12 @@ export class AppController {
     return this.appService.updateL1Contract(L2NftAddress, tokenId);
   }
 
+  /**
+   * Handles the mirror contract request.
+   * @param nftAddress - The address of the NFT.
+   * @param constructorArgs - The constructor arguments for the contract.
+   * @returns A Promise that resolves to the mirror contract response.
+   */
   @Post('mirrorContract/:nftAddress')
   @ApiBody({type: Object})
   async mirrorContract(
