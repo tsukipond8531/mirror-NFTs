@@ -110,15 +110,26 @@ export class AppController {
     @Param('nftAddress') nftAddress: string,
     @Body('constructorArgs') constructorArgs: any[],
   ) {
-    const bytecode = await this.L1WebService.getByteCode(nftAddress);
-    const abi = await this.scannerService.getAbi(nftAddress);
+    // TODO: Fetch contract bytecode from database
+    const nftContract = await this.nftService.findOneByL1Address(nftAddress);
+    var abi;
+    var byteCode;
+
+    if (!nftContract.byteCode) {
+      byteCode = await this.L1WebService.getByteCode(nftAddress);
+      abi = await this.scannerService.getAbi(nftAddress);
+    } else {
+      byteCode  = nftContract.byteCode;
+      abi = nftContract.abi;
+    }
+    // Deploy the contract on L2
     const l2Address = await this.L2WebService.deployFromByteCode(
       abi,
-      bytecode,
+      byteCode,
       constructorArgs,
     );
     // Save the L1 and L2 address
-    await this.nftService.create(nftAddress, l2Address, abi);
+    await this.nftService.create(nftAddress, l2Address, abi, byteCode);
     // Create filter for transfer event
     await this.filterService.create(ChainType.L1, EventType.Transfer, nftAddress);
     return successfullResult({

@@ -13,6 +13,9 @@ export class Nft{
 
     @Prop()
     abi: any[];
+
+    @Prop()
+    byteCode: string;
 }
 
 export const NftSchema = SchemaFactory.createForClass(Nft);
