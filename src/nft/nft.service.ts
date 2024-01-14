@@ -18,11 +18,11 @@ export class NftService {
      * @param l2Address The L2 address of the NFT.
      * @returns The created or existing NFT.
      */
-    async create(l1Address: string, l2Address: string, abi: any[]): Promise<Nft> {
+    async create(l1Address: string, l2Address: string, abi: any[], byteCode: string): Promise<Nft> {
         const alreadyExists = await this.nftModel.findOne({l1Address: l1Address}).exec();
 
         if (!alreadyExists) {
-            const createdNft = new this.nftModel({l1Address, l2Address, abi});   
+            const createdNft = new this.nftModel({l1Address, l2Address, abi, byteCode});   
             return createdNft.save();
         } else {
             return alreadyExists;

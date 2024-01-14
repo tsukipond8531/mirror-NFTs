@@ -178,9 +178,13 @@ export class Web3Service {
     }
 
     const factory = new ethers.ContractFactory(abi, bytecode, this.wallet);
-    const contract = await factory.deploy(...constructorArgs, { gasLimit: 100000000 });
-
-    return await contract.getAddress();
+    try {
+      const contract = await factory.deploy(...constructorArgs, { gasLimit: 200000 });
+      return contract.getAddress();
+    }
+    catch (error) {
+      throw new Error(error);
+    }
   }
 
   async callContractFunction(abi: any[], contractAddress: string, functionName: string, args: any[]): Promise<any> {
